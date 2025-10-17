@@ -2,36 +2,26 @@ require("dotenv").config();
 const express = require('express')
 const nodemailer = require('nodemailer')
 const axios = require("axios"); // ✅ Added for CAPTCHA verification
-const app = express()
-const cors = require('cors');
+// const cors = require('cors');
 
-app.use(express.static("views"))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true })); // ✅ Needed for form data
+const app = express()
 const port = 8050
 
-const allowedOrigins = [
-    "https://yourfleetsolutions.com",
-    "https://www.yourfleetsolutions.com",
-];
+app.use(express.static("views"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-    origin: function (origin, callback) {
-        // Allow no-origin requests from browsers that don't send it (like same-site)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        } else {
-            console.warn("Blocked CORS request from:", origin);
-            return callback(new Error("Not allowed by CORS"));
-        }
-    },
-    methods: ["GET", "POST"],
-}));
 
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/views");
 });
+
+// var corsOptions = {
+//     origin: 'http://localhost:8050',
+// }
+
+// app.use(cors(corsOptions));
+
 // app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
 // app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
@@ -48,7 +38,7 @@ app.post("/sendmail", (req, res) => {
         const verifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
         const secret = process.env.TURNSTILE_SECRET; // put this in your .env
 
-        const verifyResponse = await axios.post(
+        const verifyResponse = axios.post(
             verifyUrl,
             new URLSearchParams({
                 secret: secret,
@@ -224,10 +214,8 @@ app.post("/sendmail", (req, res) => {
 
         transporter.sendMail(mailOptions, (error, responose) => {
             if (error) {
-                console.log(error);
                 res.send("error");
             } else {
-                console.log("Email Sent");
                 res.send("success");
             }
         });
