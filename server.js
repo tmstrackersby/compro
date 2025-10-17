@@ -3,11 +3,31 @@ const express = require('express')
 const nodemailer = require('nodemailer')
 const axios = require("axios"); // ✅ Added for CAPTCHA verification
 const app = express()
+const cors = require('cors');
 
 app.use(express.static("views"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true })); // ✅ Needed for form data
 const port = 8050
+
+const allowedOrigins = [
+    "https://yourfleetsolutions.com",
+    "https://www.yourfleetsolutions.com",
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow no-origin requests from browsers that don't send it (like same-site)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            console.warn("Blocked CORS request from:", origin);
+            return callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: ["GET", "POST"],
+}));
 
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/views");
